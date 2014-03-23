@@ -1,0 +1,20 @@
+---
+
+- name: install libyaml
+  apt: pkg=libyaml-dev state=present
+
+- name: install pecl-yaml
+  shell: printf "\n" | pecl install yaml creates=/usr/lib/php5/20121212/yaml.so
+
+- name: write yaml.ini
+  template: src=yaml.ini.j2 dest=/etc/php5/mods-available/yaml.ini owner=root group=root mode=0644
+
+- name: activate cli yaml
+  file: src=/etc/php5/mods-available/yaml.ini dest=/etc/php5/cli/conf.d/20-yaml.ini state=link
+  when: "'cli' in php_yaml_versions"
+
+- name: activate fpm yaml
+  file: src=/etc/php5/mods-available/yaml.ini dest=/etc/php5/fpm/conf.d/20-yaml.ini state=link
+  notify:
+    - restart php-fpm
+  when: "'fpm' in php_yaml_versions"
